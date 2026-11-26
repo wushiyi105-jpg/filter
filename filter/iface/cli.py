@@ -81,7 +81,7 @@ def due(day: str = typer.Option("", help="YYYY-MM-DD"), db: Path = typer.Option(
         console.print(f"  [yellow]{f.rule_id}[/] -{f.penalty} {f.message}")
 
 
-@app.command()
+@app.command("scan")
 def scan_cmd(day: str = typer.Option(""), db: Path = typer.Option(None)) -> None:
     """7 天内到期的推送文案。"""
     s = _settings(db)
@@ -89,7 +89,6 @@ def scan_cmd(day: str = typer.Option(""), db: Path = typer.Option(None)) -> None
     console.print(digest(_store(s), d))
 
 
-app.command(name="scan")(scan_cmd)
 
 
 @app.command()
