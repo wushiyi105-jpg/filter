@@ -1,0 +1,24 @@
+{
+  "appliances": [
+    {"name": "净水器", "brand": "美的", "model": "MRO1890", "since": "2024-03-10", "intensity": 1.0},
+    {"name": "空气净化器", "brand": "小米", "model": "Pro H", "since": "2023-11-11", "intensity": 1.4},
+    {"name": "扫地机器人", "brand": "石头", "model": "T8", "since": "2024-06-01", "intensity": 1.0},
+    {"name": "洗衣机", "brand": "海尔", "model": "EG100", "since": "2022-09-20", "intensity": 1.1},
+    {"name": "油烟机", "brand": "方太", "model": "EMC2", "since": "2021-05-01", "intensity": 1.2}
+  ],
+  "consumables": [
+    {"appliance": "净水器", "name": "PP 棉滤芯", "cycle_days": 90, "last_replaced": "2026-09-05", "stock": 2, "price_low": 39, "price_high": 69},
+    {"appliance": "净水器", "name": "RO 膜", "cycle_days": 720, "last_replaced": "2025-06-01", "stock": 0, "price_low": 260, "price_high": 420},
+    {"appliance": "空气净化器", "name": "初效滤网", "cycle_days": 60, "last_replaced": "2026-10-01", "stock": 1, "price_low": 59, "price_high": 99},
+    {"appliance": "空气净化器", "name": "活性炭滤网", "cycle_days": 180, "last_replaced": "2026-05-20", "stock": 2, "price_low": 129, "price_high": 199},
+    {"appliance": "扫地机器人", "name": "边刷", "cycle_days": 120, "last_replaced": "2026-08-01", "stock": 3, "price_low": 19, "price_high": 39},
+    {"appliance": "扫地机器人", "name": "主刷", "cycle_days": 180, "last_replaced": "2026-04-10", "stock": 1, "price_low": 49, "price_high": 89},
+    {"appliance": "洗衣机", "name": "筒清洁剂", "cycle_days": 60, "last_replaced": "2026-09-20", "stock": 0, "price_low": 25, "price_high": 45},
+    {"appliance": "油烟机", "name": "油杯", "cycle_days": 365, "last_replaced": "2025-12-01", "stock": 2, "price_low": 30, "price_high": 60}
+  ],
+  "services": [
+    {"appliance": "净水器", "on": "2026-09-05", "kind": "换 PP 棉", "cost": 0, "warranty_until": "2026-12-05"},
+    {"appliance": "空气净化器", "on": "2026-10-01", "kind": "换初效滤网", "cost": 79, "warranty_until": "2026-12-15"},
+    {"appliance": "洗衣机", "on": "2026-03-02", "kind": "上门清洗", "cost": 180, "warranty_until": "2027-03-02"}
+  ]
+}
