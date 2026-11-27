@@ -51,6 +51,9 @@ No, it only produces a purchase list.
 **Where do the price bands come from?**
 Seeded local ranges; out-of-band model quotes are discarded.
 
+**Was the Docker image verified?**
+Docker is not installed on the build machine, so `docker build .` was not run and the image is unverified; only the Dockerfile and ports were checked statically.
+
 ## Commands
 
 See the Chinese README (`README.md`) for the command table with flags; every command supports `--help`.
@@ -63,13 +66,13 @@ FastAPI + Uvicorn, Jinja2, pydantic / pydantic-settings, httpx, Typer + Rich, SQ
 
 ```mermaid
 graph LR
-  A[家电] --> M[周期折算]
-  B[耗材] --> M
-  C[维修] --> M
-  M --> R[规则：到期 / 间隔异常 / 余量 / 保修]
-  R --> P[模型写购买说明]
-  P --> G[价格守卫]
-  G --> O[到期清单 + 每日推送]
+  A[appliances] --> M[cycle conversion]
+  B[consumables] --> M
+  C[repairs] --> M
+  M --> R[rules: due / interval gap / remaining / warranty]
+  R --> P[model writes purchase note]
+  P --> G[price guard]
+  G --> O[due list + daily digest]
 ```
 
 ## Layout

@@ -92,8 +92,6 @@ def scan_cmd(day: str = typer.Option(""), db: Path = typer.Option(None)) -> None
     console.print(digest(_store(s), d))
 
 
-
-
 @app.command()
 def jobs(
     day: str = typer.Option(""), run: bool = typer.Option(False, "--run"), db: Path = typer.Option(None)
