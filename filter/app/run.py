@@ -36,6 +36,15 @@ def scan(
             )
             if finding:
                 findings.append(finding)
+                item.price_source = "catalog"
+            elif data.get("price_low") and data.get("price_high"):
+                item.price_source = "model"
+            spec = str(data.get("spec") or "").strip()
+            channel = str(data.get("channel") or "").strip()
+            if spec and len(spec) <= 80:
+                item.spec = spec
+            if channel and len(channel) <= 40:
+                item.channel = channel
     return items, findings
 
 

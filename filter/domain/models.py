@@ -56,4 +56,9 @@ class DueItem:
     action: str
     price_low: float
     price_high: float
+    brand: str = ""
+    model: str = ""
+    spec: str = ""
+    channel: str = ""
+    price_source: str = "catalog"
     findings: list[Finding] = field(default_factory=list)

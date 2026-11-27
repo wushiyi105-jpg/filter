@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 
+from .catalog import find as find_catalog
 from .models import Appliance, Consumable, DueItem, Finding, Service
 from .rules.interval import irregular, next_due
 from .rules.stock import check as stock_check
@@ -28,7 +29,16 @@ def due_items(
         item = DueItem(
             appliance=app.name, consumable=c.name, due_on=due, days_left=days_left,
             stock=c.stock, action=action, price_low=c.price_low, price_high=c.price_high,
+            brand=app.brand, model=app.model,
         )
+        row = find_catalog(app.model, c.name)
+        if row:
+            item.spec = str(row["spec"])
+            item.channel = str(row["channel"])
+            # 种子价格优先；目录给出的价格带只在种子没填时才接管。
+            if item.price_low <= 0 and item.price_high <= 0:
+                item.price_low = float(row["price_low"])
+                item.price_high = float(row["price_high"])
         item.findings.extend(stock_check(c))
         if irregular(c.last_replaced, None, c.cycle_days):
             item.findings.append(

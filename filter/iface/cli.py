@@ -14,6 +14,7 @@ from ..adapters.llm import build_llm
 from ..adapters.notify import WebhookNotifier
 from ..adapters.store import SqliteStore
 from ..app.jobs import enqueue_daily, run_due
+from ..app.report import build_report
 from ..app.run import PROMPT, digest, scan
 from ..config import Settings
 from ..config import settings as default_settings
@@ -82,6 +83,35 @@ def due(day: str = typer.Option("", help="YYYY-MM-DD"), db: Path = typer.Option(
     console.print(table)
     for f in findings:
         console.print(f"  [yellow]{f.rule_id}[/] -{f.penalty} {f.message}")
+
+
+@app.command()
+def report(
+    month: str = typer.Option("", help="YYYY-MM，默认本月"),
+    out: Path = typer.Option(None, help="输出 Markdown；不填打印到终端"),
+    no_llm: bool = typer.Option(False, "--no-llm"),
+    db: Path = typer.Option(None),
+) -> None:
+    """本月该买清单：规格、价格带、渠道、可复制文本。"""
+    s = _settings(db)
+    if month:
+        try:
+            day = date.fromisoformat(f"{month}-01")
+        except ValueError as exc:
+            console.print(f"[red]月份格式应为 YYYY-MM：{exc}[/]")
+            raise typer.Exit(code=2) from exc
+    else:
+        day = date.today().replace(day=1)
+    llm = build_llm(s.llm_base_url, s.llm_api_key, s.llm_model, PROMPT) if s.llm_enabled and not no_llm else None
+    text, due, findings = build_report(_store(s), day, llm)
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text, encoding="utf-8")
+        console.print(f"[green]已写出[/] {out}（{len(due)} 项待买，{len(findings)} 条待确认）")
+    else:
+        console.print(text)
+    if llm is None:
+        console.print("[dim]本次为本地核算：规格、价格、渠道来自 30 型号目录。[/]")
 
 
 @app.command("scan")
