@@ -10,9 +10,11 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from ..adapters.llm import build_llm
+from ..adapters.notify import WebhookNotifier
 from ..adapters.store import SqliteStore
 from ..app.jobs import enqueue_daily, run_due
-from ..app.run import digest, scan
+from ..app.run import PROMPT, digest, scan
 from ..config import Settings
 from ..config import settings as default_settings
 from ..doctor import main as doctor_main
@@ -67,7 +69,8 @@ def due(day: str = typer.Option("", help="YYYY-MM-DD"), db: Path = typer.Option(
     """到期清单。"""
     s = _settings(db)
     d = date.fromisoformat(day) if day else date.today()
-    items, findings = scan(_store(s), d, s)
+    llm = build_llm(s.llm_base_url, s.llm_api_key, s.llm_model, PROMPT) if s.llm_enabled else None
+    items, findings = scan(_store(s), d, llm)
     table = Table(title=f"到期清单 {d}")
     table.add_column("家电")
     table.add_column("耗材")
@@ -100,7 +103,7 @@ def jobs(
     d = date.fromisoformat(day) if day else date.today()
     store = _store(s)
     if run:
-        console.print(f"发出 {run_due(store, s, d)} 条")
+        console.print(f"发出 {run_due(store, s, d, WebhookNotifier(s.webhook_url))} 条")
         return
     console.print(f"入队 {enqueue_daily(store, d)} 条")
 

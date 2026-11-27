@@ -9,8 +9,9 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from ..adapters.llm import build_llm
 from ..adapters.store import SqliteStore
-from ..app.run import digest, scan
+from ..app.run import PROMPT, digest, scan
 from ..config import Settings
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).resolve().parents[2] / "templates"))
@@ -19,9 +20,10 @@ TEMPLATES = Jinja2Templates(directory=str(Path(__file__).resolve().parents[2] / 
 def create_app(settings: Settings, store: SqliteStore | None = None) -> FastAPI:
     app = FastAPI(title="Filter", version="1.0.0")
     store = store or SqliteStore(settings.db_path)
+    llm = build_llm(settings.llm_base_url, settings.llm_api_key, settings.llm_model, PROMPT) if settings.llm_enabled else None
 
     def render(request: Request) -> HTMLResponse:
-        items, findings = scan(store, date.today(), settings)
+        items, findings = scan(store, date.today(), llm)
         return TEMPLATES.TemplateResponse(
             request, "index.html",
             {"items": items, "findings": findings, "today": date.today().isoformat(),

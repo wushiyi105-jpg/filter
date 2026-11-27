@@ -6,26 +6,23 @@ import json
 from datetime import date
 from pathlib import Path
 
-from ..adapters.llm import build_llm
-from ..adapters.store import SqliteStore
-from ..config import Settings
 from ..domain.engine import DueItem, build
 from ..domain.guard import price
 from ..domain.models import Finding
 from ..domain.render import render
+from ..ports import LLMPort, StorePort
 
-PROMPT = """你在给家用耗材报更换建议，输出 JSON：
-{"spec": "规格", "price_low": 数字, "price_high": 数字, "diy": "能否自己换"}
-价格只给区间，不编品牌型号。"""
+PROMPT = (Path(__file__).resolve().parents[2] / "prompts" / "advice.md").read_text(encoding="utf-8")
 
 
-def scan(store: SqliteStore, today: date, settings: Settings | None = None) -> tuple[list[DueItem], list[Finding]]:
+def scan(
+    store: StorePort, today: date, llm: LLMPort | None = None
+) -> tuple[list[DueItem], list[Finding]]:
     items, warranty = build(
         store.list_appliances(), store.list_consumables(), store.list_services(), today
     )
     findings: list[Finding] = list(warranty)
-    if settings is not None and settings.llm_enabled:
-        llm = build_llm(settings.llm_base_url, settings.llm_api_key, settings.llm_model, PROMPT)
+    if llm is not None:
         for item in items[:3]:
             facts = f"家电={item.appliance} 耗材={item.consumable}"
             try:
@@ -42,7 +39,7 @@ def scan(store: SqliteStore, today: date, settings: Settings | None = None) -> t
     return items, findings
 
 
-def digest(store: SqliteStore, today: date) -> str:
+def digest(store: StorePort, today: date) -> str:
     items, _ = scan(store, today)
     soon = [i for i in items if i.days_left <= 7]
     if not soon:
