@@ -1,49 +1,57 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<title>Filter · 家电保养</title>
-<style>
-  :root{--bg:#0d1117;--panel:#161b22;--line:#26303d;--ink:#e6edf3;--dim:#8b949e;--accent:#4f9cf9}
-  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,"PingFang SC",sans-serif}
-  .wrap{max-width:900px;margin:0 auto;padding:40px 20px 80px}
-  h1{font-size:22px;margin:0 0 4px}
-  .sub{color:var(--dim);font-size:13px;margin-bottom:20px}
-  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px}
-  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-size:14px}
-  th{color:var(--dim);font-weight:500}
-  .action{color:var(--accent)}
-  .warn{color:#f0883e}
-  form{display:inline}
-  button{background:var(--accent);color:#0d1117;border:none;border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer}
-  .btn{background:#21262d;color:var(--ink);border:1px solid var(--line);padding:7px 14px}
-  a{color:var(--accent);text-decoration:none;margin-right:14px}
-  .muted{color:var(--dim);font-size:13px}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>Filter</h1>
-  <div class="sub">今天 {{ today }} · {{ due_count }} 个 7 天内到期 · 共 {{ items|length }} 个耗材</div>
+{% from "_macros.html" import shell, head, stats, card, tag, empty, note %}
+{% call shell("Filter", "家电保养", true) %}
+{{ head("家电保养", "今天 " ~ today ~ " · 7 天内到期 " ~ due_count ~ " 个") }}
 
-  <table>
-    <tr><th>家电</th><th>耗材</th><th>到期</th><th>剩余</th><th>动作</th><th>价格</th><th></th></tr>
-    {% for i in items %}
-    <tr>
-      <td>{{ i.appliance }}</td><td>{{ i.consumable }}</td><td>{{ i.due_on }}</td>
-      <td>{{ i.days_left }} 天</td><td class="action">{{ i.action }}</td>
-      <td>{{ i.price_low }}–{{ i.price_high }}</td>
-      <td><form method="post" action="/replace"><input type="hidden" name="day" value="{{ today }}"><button type="submit" name="consumable_id" value="{{ loop.index0 }}">记一次更换</button></form></td>
-    </tr>
-    {% endfor %}
+{{ stats([
+  ("7 天内到期", due_count, "个"),
+  ("耗材总数", items|length, "个"),
+  ("涉及家电", items|map(attribute="appliance")|unique|list|length, "类"),
+  ("提醒规则", findings|length, "条")
+]) }}
+
+{% call card("耗材清单", items|length ~ " 个") %}
+{% if items %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>家电</th><th>耗材</th><th>到期</th><th class="num">剩余</th><th>动作</th><th class="num">参考价</th><th class="num">记录</th></tr></thead>
+    <tbody>
+      {% for i in items %}
+      <tr>
+        <td class="strong">{{ i.appliance }}</td>
+        <td>{{ i.consumable }}</td>
+        <td class="muted">{{ i.due_on }}</td>
+        <td class="num">{{ i.days_left }} 天</td>
+        <td>{{ tag(i.action, "bad" if i.days_left <= 0 else ("warn" if i.days_left <= 7 else "")) }}</td>
+        <td class="num muted">{{ i.price_low }}–{{ i.price_high }}</td>
+        <td>
+          <form class="inline-form" method="post" action="/replace">
+            <input type="hidden" name="day" value="{{ today }}">
+            <button class="btn" type="submit" name="consumable_id" value="{{ loop.index0 }}">更换</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
   </table>
-
-  {% for f in findings %}
-  <div class="warn">{{ f.rule_id }} -{{ f.penalty }} · {{ f.message }}</div>
-  {% endfor %}
-
-  <p><a href="/digest.txt">推送文案</a><a href="/health">健康检查</a></p>
-  <p class="muted">余量为 0 时动作改成「购买」，不再提示更换。</p>
 </div>
-</body>
-</html>
+{% else %}
+{{ empty("还没有耗材记录", "先跑 seed 写入示例，或补一条家电耗材。") }}
+{% endif %}
+{% endcall %}
+
+{% if findings %}
+{% call card("需要留意", findings|length ~ " 条") %}
+  <div class="stack">
+  {% for f in findings %}
+    <div class="list-row"><span class="t">{{ f.message }}</span>{{ tag(f.rule_id ~ " · −" ~ f.penalty, "warn") }}</div>
+  {% endfor %}
+  </div>
+{% endcall %}
+{% endif %}
+
+{{ note("余量为 0 时动作改成「购买」，不再提示更换。") }}
+<div class="form-actions">
+  <a class="btn" href="/digest.txt">推送文案</a>
+  <a class="btn btn--ghost" href="/health">健康检查</a>
+</div>
+{% endcall %}

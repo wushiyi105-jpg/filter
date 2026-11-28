@@ -7,6 +7,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from ..adapters.llm import build_llm
@@ -19,6 +20,11 @@ TEMPLATES = Jinja2Templates(directory=str(Path(__file__).resolve().parents[2] / 
 
 def create_app(settings: Settings, store: SqliteStore | None = None) -> FastAPI:
     app = FastAPI(title="Filter", version="1.0.0")
+    app.mount(
+        "/static",
+        StaticFiles(directory=str(Path(__file__).resolve().parents[2] / "static")),
+        name="static",
+    )
     store = store or SqliteStore(settings.db_path)
     llm = build_llm(settings.llm_base_url, settings.llm_api_key, settings.llm_model, PROMPT) if settings.llm_enabled else None
 
@@ -69,3 +75,4 @@ def app_factory(settings: Settings | None = None) -> FastAPI:
 
         settings = default_settings
     return create_app(settings)
+
