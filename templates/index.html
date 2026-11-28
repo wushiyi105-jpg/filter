@@ -1,6 +1,6 @@
 {% from "_macros.html" import shell, head, stats, card, tag, empty, note %}
-{% call shell("Filter", "家电保养", true) %}
-{{ head("家电保养", "今天 " ~ today ~ " · 7 天内到期 " ~ due_count ~ " 个") }}
+{% call shell("Filter", "耗材护照", true) %}
+{{ head("本月哪些耗材该换了", "今天 " ~ today ~ " · 7 天内到期 " ~ due_count ~ " 个") }}
 
 {{ stats([
   ("7 天内到期", due_count, "个"),
